@@ -1,10 +1,15 @@
+use clack_extensions::params::{ParamInfoBuffer, ParamInfoFlags, PluginParams};
 use clack_host::{
     bundle::PluginBundle,
     factory::PluginFactory,
     host::{AudioProcessorHandler, HostHandlers, HostInfo, MainThreadHandler, SharedHandler},
-    plugin::{PluginInstance, PluginInstanceError},
-    process::PluginAudioConfiguration,
+    plugin::{PluginInstance, PluginInstanceError, PluginMainThreadHandle},
+    process::{PluginAudioConfiguration, StoppedPluginAudioProcessor},
 };
+use serde_json::json;
+use std::collections::HashMap;
+
+use crate::{ClapParams, ParamValues, PluginInfo};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ClapInfoHostError {
@@ -12,7 +17,7 @@ pub enum ClapInfoHostError {
     PluginInstanceError(PluginInstanceError),
 
     #[error("Invalid plugin index: {0}")]
-    InvalidPluginIndex(u32),
+    InvalidPluginIndex(usize),
 }
 
 impl From<PluginInstanceError> for ClapInfoHostError {
@@ -30,10 +35,14 @@ impl ClapInfoHost {
         Self { bundle }
     }
 
-    pub fn activate_plugin(&mut self, index: u32) -> Result<(), ClapInfoHostError> {
+    pub fn query_extensions(
+        &mut self,
+        index: usize,
+        plugin_info: &mut PluginInfo,
+    ) -> Result<(), ClapInfoHostError> {
         let factory = self.bundle.get_factory::<PluginFactory<'_>>().unwrap();
         let plugin_id = factory
-            .plugin_descriptor(index)
+            .plugin_descriptor(index as u32)
             .ok_or(ClapInfoHostError::InvalidPluginIndex(index))?
             .id()
             .expect("Failed to get plugin id");
@@ -43,7 +52,8 @@ impl ClapInfoHost {
             "github.com/danigb/clap-info-rs",
             "0.1.0",
         )
-        .expect("Static strings should not fail");
+        .expect("Static &str props never fail");
+
         let mut plugin: PluginInstance<Self> = PluginInstance::new(
             |_| ClapInfoSharedHandler::default(),
             |sh: &ClapInfoSharedHandler| ClapInfoMainThreadHandler { sh },
@@ -52,14 +62,30 @@ impl ClapInfoHost {
             &host_info,
         )?;
 
+        // Remove parameter processing for now
+
         let audio_config = PluginAudioConfiguration {
             sample_rate: 48_000.0,
-            min_frames_count: 0,
-            max_frames_count: 512,
+            min_frames_count: 32,
+            max_frames_count: 4096,
         };
-        let activated =
-            plugin.activate(|sh, _| ClipInfoAudioProcessor { sh: &sh }, audio_config)?;
+
+        let mut mt_handle = plugin.plugin_handle();
+
+        let clap_params = ClapParams::from_plugin(&mut mt_handle);
+        plugin_info.add_extension("clap.params", clap_params);
+
         Ok(())
+    }
+
+    fn create_params_json(
+        plugin: &mut PluginInstance<Self>,
+    ) -> Result<HashMap<String, String>, ClapInfoHostError> {
+        // Create a simple placeholder response for now
+        let mut plugin_params = HashMap::new();
+        plugin_params.insert("implemented".to_string(), "unknown".to_string());
+
+        Ok(plugin_params)
     }
 }
 

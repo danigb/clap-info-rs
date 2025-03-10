@@ -11,7 +11,15 @@ pub struct PluginInfo {
     version: String,
     features: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    extensions: Option<HashMap<String, String>>,
+    extensions: Option<HashMap<String, serde_json::Value>>,
+}
+
+impl PluginInfo {
+    pub fn add_extension<T: serde::Serialize>(&mut self, key: &str, value: T) {
+        self.extensions
+            .get_or_insert(HashMap::new())
+            .insert(key.to_string(), serde_json::to_value(value).unwrap());
+    }
 }
 
 #[derive(Debug, serde::Serialize)]
@@ -56,5 +64,9 @@ impl BundleInfo {
             bundle_file,
             plugins,
         }
+    }
+
+    pub fn get_plugin_mut(&mut self, index: usize) -> &mut PluginInfo {
+        &mut self.plugins[index]
     }
 }

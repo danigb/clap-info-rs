@@ -10,12 +10,16 @@ struct ClapInfoArgs {
     path: Option<String>,
 
     /// List all installed CLAP plugins
-    #[arg(short, long)]
+    #[arg(short = 'l', long)]
     list_clap_files: bool,
 
     /// List descriptions for all installed CLAP plugins
-    #[arg(short, long)]
+    #[arg(short = 's', long)]
     scan_clap_files: bool,
+
+    /// The index of the plugin to display information about
+    #[arg(short, long, default_value = "0")]
+    plugin_index: usize,
 }
 
 #[derive(serde::Serialize)]
@@ -30,9 +34,11 @@ fn main() {
     if let Some(ref path) = args.path {
         match ClapScanner::get_bundle(PathBuf::from(path)) {
             Some((bundle, file)) => {
-                let info = BundleInfo::new(path.to_owned(), &bundle, Some(file));
+                let mut info = BundleInfo::new(path.to_owned(), &bundle, Some(file));
                 let mut host = ClapInfoHost::new(bundle);
-                host.activate_plugin(0);
+                let mut plugin_info = info.get_plugin_mut(args.plugin_index);
+                host.query_extensions(args.plugin_index, &mut plugin_info)
+                    .unwrap();
 
                 let result = ClapInfoResult {
                     action: "display info for a CLAP plugin",
