@@ -2,7 +2,7 @@
 
 > A simple command line CLAP information tool in Rust
 
-⚠️ Disclaimer: This is a Rust port of [clap-info](https://github.com/free-audio/clap-info/) made for the solely purpose of learning [CLAP](https://github.com/free-audio/clap), [clap-sys]() and [clack](https://github.com/prokopyl/clack) together. The goal of this project is **not to replace `clap-info` tool** but show how to do it with Rust.
+⚠️ Disclaimer: This is a Rust port of [clap-info](https://github.com/free-audio/clap-info/) made for the solely purpose of learning [CLAP](https://github.com/free-audio/clap), [clap-sys]() and [clack](https://github.com/prokopyl/clack) t ptogether. The goal of this project is **not to replace `clap-info` tool** but show how to do it with Rust.
 
 ## Install and build
 
@@ -42,9 +42,9 @@ Info (show information of an installed plugin):
   - [x] Find all .clap packages inside folders
   - [x] Print output as json
 
-- [ ] Implement `--scan-clap-files`
+- [x] Implement `--scan-clap-files`
 
-  - [ ] Read bundle information of all clap plugins
-  - [ ] Print output as json
+  - [x] Read bundle information of all clap plugins
+  - [x] Print output as json
 
 - [ ] Implement plugin info

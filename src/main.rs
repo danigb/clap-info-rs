@@ -7,6 +7,8 @@ mod clap_scanner;
 struct ClapInfoArgs {
     #[arg(short, long)]
     list_clap_files: bool,
+    #[arg(short, long)]
+    scan_clap_files: bool,
 }
 
 #[derive(serde::Serialize)]
@@ -27,6 +29,18 @@ fn main() {
         let result = ClapInfoResult {
             action: "display paths for installed claps",
             result: clap_files,
+        };
+
+        println!("{}", serde_json::to_string_pretty(&result).unwrap());
+    } else if args.scan_clap_files {
+        let clap_bundles = ClapScanner::installed_claps()
+            .iter()
+            .filter_map(|p| ClapScanner::get_bundle_info(p))
+            .collect::<Vec<_>>();
+
+        let result = ClapInfoResult {
+            action: "display descriptions for installed claps",
+            result: clap_bundles,
         };
 
         println!("{}", serde_json::to_string_pretty(&result).unwrap());
