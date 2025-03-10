@@ -48,3 +48,5 @@ Info (show information of an installed plugin):
   - [x] Print output as json
 
 - [ ] Implement plugin info
+
+- [ ] Implement `--search-path`

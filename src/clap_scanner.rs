@@ -1,26 +1,10 @@
-use std::{ffi::CStr, path::PathBuf};
+use std::{collections::HashMap, ffi::CStr, path::PathBuf};
 
 use clack_host::{bundle::PluginBundle, factory::PluginFactory};
 
-#[derive(Debug, serde::Serialize)]
-pub struct BundleInfo {
-    clap_version: String,
-    path: String,
-    bundle_file: String,
-    plugins: Vec<PluginInfo>,
-}
+use crate::BundleInfo;
 
-#[derive(Debug, serde::Serialize)]
-pub struct PluginInfo {
-    id: String,
-    name: String,
-    description: String,
-    vendor: String,
-    version: String,
-    features: Vec<String>,
-}
-
-pub struct ClapScanner {}
+pub struct ClapScanner;
 
 impl ClapScanner {
     pub fn new() -> Self {
@@ -53,45 +37,8 @@ impl ClapScanner {
         claps
     }
 
-    pub fn get_bundle_info(clap_path: &PathBuf) -> Option<BundleInfo> {
-        if let Some((file, bundle)) = Self::get_bundle(clap_path.to_owned()) {
-            let factory = bundle.get_factory::<PluginFactory<'_>>().unwrap();
-            let clap_version = format!("{}", bundle.version());
-            let path = clap_path.display().to_string();
-            let bundle_file = file.display().to_string();
-
-            // Convert Option<&CStr> to a String
-            let safe_string = |opt: Option<&'_ CStr>| {
-                opt.map(|s| s.to_string_lossy().to_string())
-                    .unwrap_or_default()
-            };
-
-            let plugins = factory
-                .plugin_descriptors()
-                .map(|plugin| PluginInfo {
-                    id: safe_string(plugin.id()),
-                    name: safe_string(plugin.name()),
-                    vendor: safe_string(plugin.vendor()),
-                    description: safe_string(plugin.description()),
-                    version: safe_string(plugin.version()),
-                    features: plugin
-                        .features()
-                        .map(|f| f.to_string_lossy().to_string())
-                        .collect(),
-                })
-                .collect();
-            Some(BundleInfo {
-                clap_version,
-                path,
-                bundle_file,
-                plugins,
-            })
-        } else {
-            None
-        }
-    }
-
-    pub fn get_bundle(path: PathBuf) -> Option<(PathBuf, PluginBundle)> {
+    // Try to get a bundle from a bundle path (potentially a directory with multiple files inside).
+    pub fn get_bundle(path: PathBuf) -> Option<(PluginBundle, PathBuf)> {
         if path.is_dir() {
             match std::fs::read_dir(path) {
                 Ok(dir) => dir.into_iter().find_map(|entry| {
@@ -106,7 +53,7 @@ impl ClapScanner {
         } else if path.is_file() {
             unsafe { PluginBundle::load(&path) }
                 .ok()
-                .map(|bundle| (path, bundle))
+                .map(|bundle| (bundle, path))
         } else {
             None
         }

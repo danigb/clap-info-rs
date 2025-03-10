@@ -1,12 +1,19 @@
-use clap::Parser;
-use clap_scanner::ClapScanner;
+use std::path::PathBuf;
 
-mod clap_scanner;
+use clap::{CommandFactory, Parser};
+use clap_info_rs::{BundleInfo, ClapInfoHost, ClapScanner};
 
 #[derive(Parser)]
+#[command(about = "A tool to display information about CLAP plugins")]
 struct ClapInfoArgs {
+    /// The path to the CLAP plugin to display information about
+    path: Option<String>,
+
+    /// List all installed CLAP plugins
     #[arg(short, long)]
     list_clap_files: bool,
+
+    /// List descriptions for all installed CLAP plugins
     #[arg(short, long)]
     scan_clap_files: bool,
 }
@@ -20,9 +27,26 @@ struct ClapInfoResult<T: ?Sized + serde::Serialize> {
 fn main() {
     let args = ClapInfoArgs::parse();
 
-    if args.list_clap_files {
+    if let Some(ref path) = args.path {
+        match ClapScanner::get_bundle(PathBuf::from(path)) {
+            Some((bundle, file)) => {
+                let info = BundleInfo::new(path.to_owned(), &bundle, Some(file));
+                let mut host = ClapInfoHost::new(bundle);
+                host.activate_plugin(0);
+
+                let result = ClapInfoResult {
+                    action: "display info for a CLAP plugin",
+                    result: info,
+                };
+                println!("{}", serde_json::to_string_pretty(&result).unwrap());
+            }
+            None => {
+                eprintln!("Failed to get bundle info for {}", args.path.unwrap());
+            }
+        }
+    } else if args.list_clap_files {
         let clap_files = ClapScanner::installed_claps()
-            .iter()
+            .into_iter()
             .map(|p| p.display().to_string())
             .collect::<Vec<_>>();
 
@@ -34,8 +58,12 @@ fn main() {
         println!("{}", serde_json::to_string_pretty(&result).unwrap());
     } else if args.scan_clap_files {
         let clap_bundles = ClapScanner::installed_claps()
-            .iter()
-            .filter_map(|p| ClapScanner::get_bundle_info(p))
+            .into_iter()
+            .filter_map(|clap_path| {
+                let path = clap_path.display().to_string();
+                ClapScanner::get_bundle(clap_path)
+                    .map(|(bundle, bundle_path)| BundleInfo::new(path, &bundle, Some(bundle_path)))
+            })
             .collect::<Vec<_>>();
 
         let result = ClapInfoResult {
@@ -44,5 +72,7 @@ fn main() {
         };
 
         println!("{}", serde_json::to_string_pretty(&result).unwrap());
+    } else {
+        println!("{}", ClapInfoArgs::command().render_help());
     }
 }
