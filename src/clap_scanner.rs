@@ -2,7 +2,7 @@ use std::{collections::HashMap, ffi::CStr, path::PathBuf};
 
 use clack_host::{bundle::PluginBundle, factory::PluginFactory};
 
-use crate::BundleInfo;
+use crate::InfoBundle;
 
 pub struct ClapScanner;
 

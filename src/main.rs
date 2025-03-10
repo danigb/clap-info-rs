@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::{CommandFactory, Parser};
-use clap_info_rs::{BundleInfo, ClapInfoHost, ClapScanner};
+use clap_info_rs::{ClapInfoHost, ClapScanner, InfoBundle};
 
 #[derive(Parser)]
 #[command(about = "A tool to display information about CLAP plugins")]
@@ -34,7 +34,7 @@ fn main() {
     if let Some(ref path) = args.path {
         match ClapScanner::get_bundle(PathBuf::from(path)) {
             Some((bundle, file)) => {
-                let mut info = BundleInfo::new(path.to_owned(), &bundle, Some(file));
+                let mut info = InfoBundle::new(path.to_owned(), &bundle, Some(file));
                 let mut host = ClapInfoHost::new(bundle);
                 let mut plugin_info = info.get_plugin_mut(args.plugin_index);
                 host.query_extensions(args.plugin_index, &mut plugin_info)
@@ -68,7 +68,7 @@ fn main() {
             .filter_map(|clap_path| {
                 let path = clap_path.display().to_string();
                 ClapScanner::get_bundle(clap_path)
-                    .map(|(bundle, bundle_path)| BundleInfo::new(path, &bundle, Some(bundle_path)))
+                    .map(|(bundle, bundle_path)| InfoBundle::new(path, &bundle, Some(bundle_path)))
             })
             .collect::<Vec<_>>();
 

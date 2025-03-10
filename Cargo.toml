@@ -11,6 +11,23 @@ clack-host = { git = "https://github.com/prokopyl/clack.git" }
 clack-extensions = { git = "https://github.com/prokopyl/clack.git", features = [
     "clack-host",
     "params",
+    "audio-ports",
+    "note-ports",
+    "audio-ports-config",
+    "event-registry",
+    "gui",
+    "latency",
+    "log",
+    "note-name",
+    "note-ports",
+    "params",
+    "render",
+    "state",
+    "tail",
+    "thread-check",
+    "thread-pool",
+    "timer",
+    "voice-info",
 ] }
 clack-plugin = { git = "https://github.com/prokopyl/clack.git" }
 shellexpand = "3.1.0"

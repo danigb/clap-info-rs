@@ -9,7 +9,7 @@ use clack_host::{
 use serde_json::json;
 use std::collections::HashMap;
 
-use crate::{ClapParams, ParamValues, PluginInfo};
+use crate::{InfoAudioPorts, InfoParams, InfoPlugin};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ClapInfoHostError {
@@ -38,7 +38,7 @@ impl ClapInfoHost {
     pub fn query_extensions(
         &mut self,
         index: usize,
-        plugin_info: &mut PluginInfo,
+        plugin_info: &mut InfoPlugin,
     ) -> Result<(), ClapInfoHostError> {
         let factory = self.bundle.get_factory::<PluginFactory<'_>>().unwrap();
         let plugin_id = factory
@@ -72,20 +72,13 @@ impl ClapInfoHost {
 
         let mut mt_handle = plugin.plugin_handle();
 
-        let clap_params = ClapParams::from_plugin(&mut mt_handle);
-        plugin_info.add_extension("clap.params", clap_params);
+        let params_info = InfoParams::from_plugin(&mut mt_handle);
+        plugin_info.add_extension("clap.params", params_info);
+
+        let clap_audio_ports = InfoAudioPorts::from_plugin(&mut mt_handle);
+        plugin_info.add_extension("clap.audio-ports", clap_audio_ports);
 
         Ok(())
-    }
-
-    fn create_params_json(
-        plugin: &mut PluginInstance<Self>,
-    ) -> Result<HashMap<String, String>, ClapInfoHostError> {
-        // Create a simple placeholder response for now
-        let mut plugin_params = HashMap::new();
-        plugin_params.insert("implemented".to_string(), "unknown".to_string());
-
-        Ok(plugin_params)
     }
 }
 

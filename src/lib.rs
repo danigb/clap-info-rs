@@ -1,9 +1,11 @@
-mod bundle_info;
 mod clap_info_host;
-mod clap_params;
 mod clap_scanner;
+mod info;
+mod info_params;
+mod info_ports;
 
-pub use bundle_info::*;
 pub use clap_info_host::*;
-pub use clap_params::*;
 pub use clap_scanner::*;
+pub use info::*;
+pub use info_params::*;
+pub use info_ports::*;
