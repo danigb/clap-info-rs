@@ -35,12 +35,12 @@ Info (show information of an installed plugin):
 
 ## Development plan
 
-- [ ] Implement `--search-path`
+- [-] Implement `--search-path`
 
-  - [-] Find all possible CLAP locations for all platforms
+  - [x] Find all possible CLAP locations for all platforms
   - [ ] Read environment variables
 
-- [-] Implement `--list-clap-files`
+- [x] Implement `--list-clap-files`
 
   - [x] Find all .clap packages inside folders
 

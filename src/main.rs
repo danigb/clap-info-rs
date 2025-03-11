@@ -9,17 +9,21 @@ struct ClapInfoArgs {
     /// The path to the CLAP plugin to display information about
     path: Option<String>,
 
-    /// List all installed CLAP plugins
+    /// Show all CLAP files in the search path then exit
     #[arg(short = 'l', long)]
     list_clap_files: bool,
 
-    /// List descriptions for all installed CLAP plugins
+    /// Show all descriptions in all CLAP files in the search path, then exit
     #[arg(short = 's', long)]
     scan_clap_files: bool,
 
-    /// The index of the plugin to display information about
+    /// Show the CLAP plugin search paths then exit
+    #[arg(long)]
+    search_path: bool,
+
+    /// Choose which plugin to create (if the CLAP has more than one). If you set to -1 we will traverse all plugins.
     #[arg(short, long, default_value = "0")]
-    plugin_index: usize,
+    which: usize,
 }
 
 #[derive(serde::Serialize)]
@@ -36,9 +40,8 @@ fn main() {
             Some((bundle, file)) => {
                 let mut info = InfoBundle::new(path.to_owned(), &bundle, Some(file));
                 let mut host = ClapInfoHost::new(bundle);
-                let mut plugin_info = info.get_plugin_mut(args.plugin_index);
-                host.query_extensions(args.plugin_index, &mut plugin_info)
-                    .unwrap();
+                let mut plugin_info = info.get_plugin_mut(args.which);
+                host.query_extensions(args.which, &mut plugin_info).unwrap();
 
                 let result = ClapInfoResult {
                     action: "display info for a CLAP plugin",
@@ -50,6 +53,13 @@ fn main() {
                 eprintln!("Failed to get bundle info for {}", args.path.unwrap());
             }
         }
+    } else if args.search_path {
+        let search_path = ClapScanner::get_search_paths();
+        let result = ClapInfoResult {
+            action: "display the CLAP plugin search path",
+            result: search_path,
+        };
+        println!("{}", serde_json::to_string_pretty(&result).unwrap());
     } else if args.list_clap_files {
         let clap_files = ClapScanner::installed_claps()
             .into_iter()

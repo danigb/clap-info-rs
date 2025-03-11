@@ -12,7 +12,7 @@ impl ClapScanner {
     }
 
     pub fn installed_claps() -> Vec<PathBuf> {
-        let search_paths = Self::valid_clap_search_paths();
+        let search_paths = Self::get_search_paths();
         let mut claps = Vec::new();
 
         for path in search_paths {
@@ -59,7 +59,7 @@ impl ClapScanner {
         }
     }
 
-    fn valid_clap_search_paths() -> Vec<String> {
+    pub fn get_search_paths() -> Vec<String> {
         #[cfg(target_os = "linux")]
         {
             vec![

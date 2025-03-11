@@ -38,6 +38,11 @@ impl InfoBundle {
     }
 }
 
+pub struct InfoPluginWithExtensions {
+    descriptor: InfoPlugin,
+    extensions: HashMap<String, serde_json::Value>,
+}
+
 #[derive(Debug, serde::Serialize)]
 pub struct InfoPlugin {
     id: String,
@@ -46,7 +51,6 @@ pub struct InfoPlugin {
     vendor: String,
     version: String,
     features: Vec<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     extensions: Option<HashMap<String, serde_json::Value>>,
 }
 
