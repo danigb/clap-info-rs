@@ -11,6 +11,7 @@ use std::io::Write;
 use crate::ClapInfoHost;
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoLatencyExtension {
     implemented: bool,
     latency: u32,
@@ -35,6 +36,7 @@ impl InfoLatencyExtension {
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoTailExtension {
     implemented: bool,
     tail: u32,
@@ -56,18 +58,21 @@ impl InfoTailExtension {
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct ApiSupported {
     api: String,
     floating: bool,
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct PreferredApi {
     api: String,
     floating: bool,
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoGuiExtension {
     implemented: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -137,6 +142,7 @@ impl InfoGuiExtension {
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoStateExtension {
     implemented: bool,
     #[serde(rename = "bytes-written", skip_serializing_if = "Option::is_none")]
@@ -183,7 +189,8 @@ impl InfoStateExtension {
 }
 
 #[derive(serde::Serialize)]
-pub struct NoteNameEntry {
+#[serde(rename_all = "kebab-case")]
+pub struct InfoNoteName {
     name: String,
     port: i16,
     key: i16,
@@ -191,11 +198,12 @@ pub struct NoteNameEntry {
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoNoteNameExtension {
     implemented: bool,
     count: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
-    note_names: Option<Vec<NoteNameEntry>>,
+    note_names: Option<Vec<InfoNoteName>>,
 }
 
 impl InfoNoteNameExtension {
@@ -233,7 +241,7 @@ impl InfoNoteNameExtension {
                             clack_host::events::Match::Specific(c) => c as i16,
                         };
 
-                        names.push(NoteNameEntry {
+                        names.push(InfoNoteName {
                             name,
                             port,
                             key,

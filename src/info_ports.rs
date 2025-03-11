@@ -12,7 +12,8 @@ use serde::Serialize;
 use std::ffi::CStr;
 
 #[derive(Serialize)]
-pub struct InfoAudioPorts {
+#[serde(rename_all = "kebab-case")]
+pub struct InfoAudioPortsExtension {
     implemented: bool,
     input_port_count: u32,
     output_port_count: u32,
@@ -20,76 +21,7 @@ pub struct InfoAudioPorts {
     output_ports: Vec<InfoAudioPort>,
 }
 
-#[derive(Serialize)]
-pub struct InfoAudioPort {
-    id: u32,
-    name: String,
-    port_type: String,
-    channel_count: u32,
-    flags: InfoAudioPortFlag,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    in_place_pair: Option<u32>,
-}
-
-impl InfoAudioPort {
-    pub fn from_port_info(port_info: &AudioPortInfo) -> Self {
-        Self {
-            id: port_info.id.into(),
-            name: String::from_utf8_lossy(port_info.name).to_string(),
-            port_type: Self::port_type_to_string(port_info.port_type),
-            channel_count: port_info.channel_count,
-            flags: InfoAudioPortFlag {
-                fields: Self::port_flags_to_str_list(port_info.flags),
-                value: port_info.flags.bits(),
-            },
-            in_place_pair: port_info.in_place_pair.map(Into::into),
-        }
-    }
-
-    fn port_type_to_string(port_type: Option<AudioPortType>) -> String {
-        if let Some(pt) = port_type {
-            if pt == AudioPortType::MONO {
-                "mono".to_string()
-            } else if pt == AudioPortType::STEREO {
-                "stereo".to_string()
-            } else {
-                "unknown".to_string()
-            }
-        } else {
-            "unknown".to_string()
-        }
-    }
-    fn port_flags_to_str_list(flags: AudioPortFlags) -> Option<Vec<&'static str>> {
-        let mut flag_fields = Vec::new();
-        if flags.contains(AudioPortFlags::IS_MAIN) {
-            flag_fields.push("CLAP_AUDIO_PORT_IS_MAIN");
-        }
-        if flags.contains(AudioPortFlags::SUPPORTS_64BITS) {
-            flag_fields.push("CLAP_AUDIO_PORT_SUPPORTS_64BITS");
-        }
-        if flags.contains(AudioPortFlags::REQUIRES_COMMON_SAMPLE_SIZE) {
-            flag_fields.push("CLAP_AUDIO_PORT_REQUIRES_COMMON_SAMPLE_SIZE");
-        }
-        if flags.contains(AudioPortFlags::PREFERS_64BITS) {
-            flag_fields.push("CLAP_AUDIO_PORT_PREFERS_64BITS");
-        }
-
-        if flag_fields.is_empty() {
-            None
-        } else {
-            Some(flag_fields)
-        }
-    }
-}
-
-#[derive(Serialize)]
-pub struct InfoAudioPortFlag {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    fields: Option<Vec<&'static str>>,
-    value: u32,
-}
-
-impl InfoAudioPorts {
+impl InfoAudioPortsExtension {
     pub fn from_plugin(plugin: &mut PluginMainThreadHandle) -> Self {
         let mut input_ports = Vec::new();
         let mut output_ports = Vec::new();
@@ -132,6 +64,7 @@ impl InfoAudioPorts {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoAudioPortsConfigs {
     implemented: bool,
     count: u32,
@@ -139,6 +72,7 @@ pub struct InfoAudioPortsConfigs {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoAudioPortsConfig {
     id: u32,
     name: String,
@@ -209,8 +143,79 @@ impl InfoAudioPortsConfigs {
         }
     }
 }
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct InfoAudioPort {
+    id: u32,
+    name: String,
+    port_type: String,
+    channel_count: u32,
+    flags: InfoAudioPortFlag,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    in_place_pair: Option<u32>,
+}
+
+impl InfoAudioPort {
+    pub fn from_port_info(port_info: &AudioPortInfo) -> Self {
+        Self {
+            id: port_info.id.into(),
+            name: String::from_utf8_lossy(port_info.name).to_string(),
+            port_type: Self::port_type_to_string(port_info.port_type),
+            channel_count: port_info.channel_count,
+            flags: InfoAudioPortFlag {
+                fields: Self::port_flags_to_str_list(port_info.flags),
+                value: port_info.flags.bits(),
+            },
+            in_place_pair: port_info.in_place_pair.map(Into::into),
+        }
+    }
+
+    fn port_type_to_string(port_type: Option<AudioPortType>) -> String {
+        if let Some(pt) = port_type {
+            if pt == AudioPortType::MONO {
+                "mono".to_string()
+            } else if pt == AudioPortType::STEREO {
+                "stereo".to_string()
+            } else {
+                "unknown".to_string()
+            }
+        } else {
+            "unknown".to_string()
+        }
+    }
+    fn port_flags_to_str_list(flags: AudioPortFlags) -> Option<Vec<&'static str>> {
+        let mut flag_fields = Vec::new();
+        if flags.contains(AudioPortFlags::IS_MAIN) {
+            flag_fields.push("CLAP_AUDIO_PORT_IS_MAIN");
+        }
+        if flags.contains(AudioPortFlags::SUPPORTS_64BITS) {
+            flag_fields.push("CLAP_AUDIO_PORT_SUPPORTS_64BITS");
+        }
+        if flags.contains(AudioPortFlags::REQUIRES_COMMON_SAMPLE_SIZE) {
+            flag_fields.push("CLAP_AUDIO_PORT_REQUIRES_COMMON_SAMPLE_SIZE");
+        }
+        if flags.contains(AudioPortFlags::PREFERS_64BITS) {
+            flag_fields.push("CLAP_AUDIO_PORT_PREFERS_64BITS");
+        }
+
+        if flag_fields.is_empty() {
+            None
+        } else {
+            Some(flag_fields)
+        }
+    }
+}
 
 #[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct InfoAudioPortFlag {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    fields: Option<Vec<&'static str>>,
+    value: u32,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoNotePorts {
     implemented: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -224,6 +229,7 @@ pub struct InfoNotePorts {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoNotePort {
     id: u32,
     name: String,
@@ -232,11 +238,13 @@ pub struct InfoNotePort {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoNoteDialects {
     supported: Vec<String>,
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoNoteDialect {
     dialect: String,
 }
@@ -364,6 +372,7 @@ impl InfoNotePorts {
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct AudioPortsConfigEntry {
     id: String,
     name: String,
@@ -386,6 +395,7 @@ pub struct AudioPortsConfigEntry {
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoAudioPortsConfigExtension {
     implemented: bool,
     count: usize,

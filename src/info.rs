@@ -6,6 +6,7 @@ use clack_host::{
 };
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoBundle {
     clap_version: String,
     path: String,
@@ -76,6 +77,7 @@ impl serde::Serialize for InfoPlugin {
 }
 
 #[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoPluginDescriptor {
     id: String,
     name: String,

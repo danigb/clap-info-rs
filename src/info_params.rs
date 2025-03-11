@@ -2,13 +2,14 @@ use clack_extensions::params::{ParamInfo, ParamInfoBuffer, ParamInfoFlags, Plugi
 use clack_host::plugin::PluginMainThreadHandle;
 
 #[derive(serde::Serialize)]
-pub struct InfoParams {
+#[serde(rename_all = "kebab-case")]
+pub struct InfoParamsExtension {
     implemented: bool,
     param_count: u32,
     params: Vec<InfoParam>,
 }
 
-impl InfoParams {
+impl InfoParamsExtension {
     pub fn from_plugin(plugin: &mut PluginMainThreadHandle) -> Self {
         let mut param_list = Vec::new();
         let mut implemented = false;
@@ -35,6 +36,7 @@ impl InfoParams {
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoParam {
     id: String,
     name: String,
@@ -116,6 +118,7 @@ impl InfoParam {
 }
 
 #[derive(serde::Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct InfoParamValue {
     current: f64,
     default: f64,

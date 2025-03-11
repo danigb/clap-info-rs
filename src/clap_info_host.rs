@@ -8,7 +8,7 @@ use clack_host::{
 
 use crate::{
     InfoAudioPortsConfigExtension, InfoGuiExtension, InfoLatencyExtension, InfoNoteNameExtension,
-    InfoParams, InfoPlugin, InfoStateExtension, InfoTailExtension,
+    InfoParamsExtension, InfoPlugin, InfoStateExtension, InfoTailExtension,
 };
 
 #[derive(Debug, thiserror::Error)]
@@ -74,10 +74,10 @@ impl ClapInfoHost {
 
         let mut mt_handle = plugin.plugin_handle();
 
-        let params_info = InfoParams::from_plugin(&mut mt_handle);
+        let params_info = InfoParamsExtension::from_plugin(&mut mt_handle);
         plugin_info.add_extension("clap.params", params_info);
 
-        let audio_ports = crate::info_ports::InfoAudioPorts::from_plugin(&mut mt_handle);
+        let audio_ports = crate::info_ports::InfoAudioPortsExtension::from_plugin(&mut mt_handle);
         plugin_info.add_extension("clap.audio-ports", audio_ports);
 
         let audio_ports_config =
