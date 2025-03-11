@@ -1,15 +1,12 @@
-use clack_extensions::params::{ParamInfoBuffer, ParamInfoFlags, PluginParams};
 use clack_host::{
     bundle::PluginBundle,
     factory::PluginFactory,
     host::{AudioProcessorHandler, HostHandlers, HostInfo, MainThreadHandler, SharedHandler},
-    plugin::{PluginInstance, PluginInstanceError, PluginMainThreadHandle},
-    process::{PluginAudioConfiguration, StoppedPluginAudioProcessor},
+    plugin::{PluginInstance, PluginInstanceError},
+    process::PluginAudioConfiguration,
 };
-use serde_json::json;
-use std::collections::HashMap;
 
-use crate::{InfoAudioPorts, InfoParams, InfoPlugin};
+use crate::{InfoParams, InfoPlugin};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ClapInfoHostError {
@@ -46,6 +43,7 @@ impl ClapInfoHost {
             .ok_or(ClapInfoHostError::InvalidPluginIndex(index))?
             .id()
             .expect("Failed to get plugin id");
+
         let host_info = HostInfo::new(
             "clap-info-rs",
             "danigb",
@@ -64,7 +62,7 @@ impl ClapInfoHost {
 
         // Remove parameter processing for now
 
-        let audio_config = PluginAudioConfiguration {
+        let _audio_config = PluginAudioConfiguration {
             sample_rate: 48_000.0,
             min_frames_count: 32,
             max_frames_count: 4096,
@@ -72,11 +70,22 @@ impl ClapInfoHost {
 
         let mut mt_handle = plugin.plugin_handle();
 
+        // Add params extension info
         let params_info = InfoParams::from_plugin(&mut mt_handle);
         plugin_info.add_extension("clap.params", params_info);
 
-        let clap_audio_ports = InfoAudioPorts::from_plugin(&mut mt_handle);
-        plugin_info.add_extension("clap.audio-ports", clap_audio_ports);
+        // Add audio ports extension info
+        let audio_ports = crate::info_ports::InfoAudioPorts::from_plugin(&mut mt_handle);
+        plugin_info.add_extension("clap.audio-ports", audio_ports);
+
+        // Add audio ports config extension info
+        let audio_ports_config =
+            crate::info_ports::InfoAudioPortsConfigs::from_plugin(&mut mt_handle);
+        plugin_info.add_extension("clap.audio-ports-config", audio_ports_config);
+
+        // Add note ports extension info
+        let note_ports = crate::info_ports::InfoNotePorts::from_plugin(&mut mt_handle);
+        plugin_info.add_extension("clap.note-ports", note_ports);
 
         Ok(())
     }
