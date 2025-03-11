@@ -5,7 +5,7 @@ use clack_host::{
     factory::{PluginDescriptor, PluginFactory},
 };
 
-#[derive(Debug, serde::Serialize)]
+#[derive(serde::Serialize)]
 pub struct InfoBundle {
     clap_version: String,
     path: String,
@@ -17,19 +17,14 @@ pub struct InfoBundle {
 impl InfoBundle {
     pub fn new(path: String, bundle: &PluginBundle, bundle_file: Option<PathBuf>) -> Self {
         let factory = bundle.get_factory::<PluginFactory<'_>>().unwrap();
-        let clap_version = format!("{}", bundle.version());
-        let bundle_file = bundle_file.map(|path| path.display().to_string());
-
-        let plugins = factory
-            .plugin_descriptors()
-            .map(|descriptor| InfoPlugin::from_descriptor(&descriptor))
-            .collect();
-
         Self {
-            clap_version,
+            clap_version: format!("{}", bundle.version()),
             path,
-            bundle_file,
-            plugins,
+            bundle_file: bundle_file.map(|path| path.display().to_string()),
+            plugins: factory
+                .plugin_descriptors()
+                .map(|descriptor| InfoPlugin::from_descriptor(&descriptor))
+                .collect(),
         }
     }
 
@@ -38,23 +33,59 @@ impl InfoBundle {
     }
 }
 
-pub struct InfoPluginWithExtensions {
-    descriptor: InfoPlugin,
-    extensions: HashMap<String, serde_json::Value>,
+pub struct InfoPlugin {
+    descriptor: InfoPluginDescriptor,
+    extensions: Option<HashMap<String, serde_json::Value>>,
+}
+
+impl InfoPlugin {
+    pub fn from_descriptor(descriptor: &PluginDescriptor<'_>) -> Self {
+        Self {
+            descriptor: InfoPluginDescriptor::from_descriptor(descriptor),
+            extensions: None,
+        }
+    }
+
+    pub fn add_extension<T: serde::Serialize>(&mut self, key: &str, value: T) {
+        self.extensions
+            .get_or_insert(HashMap::new())
+            .insert(key.to_string(), serde_json::to_value(value).unwrap());
+    }
+}
+
+// Custom serialization implementation to handle the case where extensions is None
+// We do this to mimic original clap-info tool: it returns a different json
+// whenever it's scanning all bundles or a single one.
+impl serde::Serialize for InfoPlugin {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        if self.extensions.is_none() || self.extensions.as_ref().unwrap().is_empty() {
+            // If no extensions, just serialize the descriptor
+            self.descriptor.serialize(serializer)
+        } else {
+            // Otherwise, serialize both descriptor and extensions
+            use serde::ser::SerializeStruct;
+            let mut state = serializer.serialize_struct("InfoPlugin", 2)?;
+            state.serialize_field("descriptor", &self.descriptor)?;
+            state.serialize_field("extensions", &self.extensions)?;
+            state.end()
+        }
+    }
 }
 
 #[derive(Debug, serde::Serialize)]
-pub struct InfoPlugin {
+pub struct InfoPluginDescriptor {
     id: String,
     name: String,
     description: String,
     vendor: String,
     version: String,
     features: Vec<String>,
-    extensions: Option<HashMap<String, serde_json::Value>>,
 }
 
-impl InfoPlugin {
+impl InfoPluginDescriptor {
     fn from_descriptor(descriptor: &PluginDescriptor<'_>) -> Self {
         // Convert Option<&CStr> to a String
         let safe_string = |opt: Option<&'_ CStr>| {
@@ -71,13 +102,6 @@ impl InfoPlugin {
                 .features()
                 .map(|f| f.to_string_lossy().to_string())
                 .collect(),
-            extensions: None,
         }
-    }
-
-    pub fn add_extension<T: serde::Serialize>(&mut self, key: &str, value: T) {
-        self.extensions
-            .get_or_insert(HashMap::new())
-            .insert(key.to_string(), serde_json::to_value(value).unwrap());
     }
 }
