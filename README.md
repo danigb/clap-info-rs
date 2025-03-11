@@ -35,7 +35,7 @@ Info (show information of an installed plugin):
 
 ## Development plan
 
-- [-] Implement `--search-path`
+- [x] Implement `--search-path`
 
   - [x] Find all possible CLAP locations for all platforms
   - [ ] Read environment variables
@@ -48,8 +48,12 @@ Info (show information of an installed plugin):
 
   - [x] Read bundle information of all clap plugins
 
-- [-] Implement plugin info
+- [x] Implement plugin info
 
   - [x] Read params
   - [-] Read ports
   - [ ] Scan other extensions
+
+## License
+
+MIT License

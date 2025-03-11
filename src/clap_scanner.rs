@@ -1,6 +1,6 @@
 use std::{collections::HashMap, ffi::CStr, path::PathBuf};
 
-use clack_host::{bundle::PluginBundle, factory::PluginFactory};
+use clack_host::bundle::PluginBundle;
 
 use crate::InfoBundle;
 

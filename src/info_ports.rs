@@ -362,3 +362,104 @@ impl InfoNotePorts {
         }
     }
 }
+
+#[derive(serde::Serialize)]
+pub struct AudioPortsConfigEntry {
+    id: String,
+    name: String,
+    #[serde(rename = "input-port-count")]
+    input_port_count: u32,
+    #[serde(rename = "output-port-count")]
+    output_port_count: u32,
+    #[serde(rename = "has-main-input")]
+    has_main_input: bool,
+    #[serde(rename = "main-input-channel-count")]
+    main_input_channel_count: u32,
+    #[serde(rename = "main-input-port_type")]
+    main_input_port_type: String,
+    #[serde(rename = "has-main-output")]
+    has_main_output: bool,
+    #[serde(rename = "main-output-channel-count")]
+    main_output_channel_count: u32,
+    #[serde(rename = "main-output-port_type")]
+    main_output_port_type: String,
+}
+
+#[derive(serde::Serialize)]
+pub struct InfoAudioPortsConfigExtension {
+    implemented: bool,
+    count: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    configs: Option<Vec<AudioPortsConfigEntry>>,
+}
+
+impl InfoAudioPortsConfigExtension {
+    pub fn from_plugin(plugin: &mut PluginMainThreadHandle) -> Self {
+        let extension = plugin.get_extension::<PluginAudioPortsConfig>();
+        let mut implemented = false;
+        let mut count = 0;
+        let mut configs = None;
+
+        if let Some(extension) = extension {
+            implemented = true;
+            count = extension.count(plugin);
+
+            if count > 0 {
+                let mut config_entries = Vec::new();
+                for i in 0..count {
+                    let mut buffer = AudioPortsConfigBuffer::default();
+                    if let Some(config) = extension.get(plugin, i, &mut buffer) {
+                        // Convert ID to string
+                        let id = config.id.to_string();
+
+                        // Convert name from byte array to string
+                        let name = String::from_utf8_lossy(&config.name).to_string();
+
+                        // Handle main input
+                        let (has_main_input, main_input_channel_count, main_input_port_type) =
+                            if let Some(main_input) = &config.main_input {
+                                let port_type =
+                                    InfoAudioPort::port_type_to_string(main_input.port_type);
+                                (true, main_input.channel_count, port_type)
+                            } else {
+                                (false, 0, "none".to_string())
+                            };
+
+                        // Handle main output
+                        let (has_main_output, main_output_channel_count, main_output_port_type) =
+                            if let Some(main_output) = &config.main_output {
+                                let port_type =
+                                    InfoAudioPort::port_type_to_string(main_output.port_type);
+                                (true, main_output.channel_count, port_type)
+                            } else {
+                                (false, 0, "none".to_string())
+                            };
+
+                        config_entries.push(AudioPortsConfigEntry {
+                            id,
+                            name,
+                            input_port_count: config.input_port_count,
+                            output_port_count: config.output_port_count,
+                            has_main_input,
+                            main_input_channel_count,
+                            main_input_port_type,
+                            has_main_output,
+                            main_output_channel_count,
+                            main_output_port_type,
+                        });
+                    }
+                }
+
+                if !config_entries.is_empty() {
+                    configs = Some(config_entries);
+                }
+            }
+        }
+
+        Self {
+            implemented,
+            count,
+            configs,
+        }
+    }
+}
