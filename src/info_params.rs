@@ -47,7 +47,7 @@ pub struct InfoParam {
 impl InfoParam {
     pub fn from_param_info(param_info: &ParamInfo) -> Self {
         Self {
-            id: param_info.id.to_string(),
+            id: format!("0x{:08x}", u32::from(param_info.id)),
             name: String::from_utf8_lossy(param_info.name).to_string(),
             flags: Self::flags_to_vec(param_info.flags),
             values: InfoParamValue {

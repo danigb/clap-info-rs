@@ -374,7 +374,7 @@ impl InfoNotePorts {
 #[derive(serde::Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct AudioPortsConfigEntry {
-    id: String,
+    id: u32,
     name: String,
     #[serde(rename = "input-port-count")]
     input_port_count: u32,
@@ -419,8 +419,8 @@ impl InfoAudioPortsConfigExtension {
                 for i in 0..count {
                     let mut buffer = AudioPortsConfigBuffer::default();
                     if let Some(config) = extension.get(plugin, i, &mut buffer) {
-                        // Convert ID to string
-                        let id = config.id.to_string();
+                        // Use ID directly as u32
+                        let id = config.id;
 
                         // Convert name from byte array to string
                         let name = String::from_utf8_lossy(&config.name).to_string();
@@ -446,7 +446,7 @@ impl InfoAudioPortsConfigExtension {
                             };
 
                         config_entries.push(AudioPortsConfigEntry {
-                            id,
+                            id: id.into(),
                             name,
                             input_port_count: config.input_port_count,
                             output_port_count: config.output_port_count,
