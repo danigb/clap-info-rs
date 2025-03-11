@@ -13,6 +13,26 @@ git clone git@github.com:danigb/clap-info-rs.git
 cargo build --release
 ```
 
+Or run with cargo:
+
+```bash
+$ cargo run
+
+A tool to display information about CLAP plugins
+
+Usage: clap-info-rs [OPTIONS] [PATH]
+
+Arguments:
+  [PATH]  The path to the CLAP plugin to display information about
+
+Options:
+  -l, --list-clap-files  Show all CLAP files in the search path then exit
+  -s, --scan-clap-files  Show all descriptions in all CLAP files in the search path, then exit
+      --search-path      Show the CLAP plugin search paths then exit
+  -w, --which <WHICH>    Choose which plugin to create (if the CLAP has more than one).
+  -h, --help             Print help
+```
+
 ## Usage
 
 List (all installed clap files):
@@ -32,27 +52,6 @@ Info (show information of an installed plugin):
 ```bash
 ./target/release/clap-info-rs /Library/Audio/Plug-Ins/CLAP/Airwindows Consolidated.clap
 ```
-
-## Development plan
-
-- [x] Implement `--search-path`
-
-  - [x] Find all possible CLAP locations for all platforms
-  - [ ] Read environment variables
-
-- [x] Implement `--list-clap-files`
-
-  - [x] Find all .clap packages inside folders
-
-- [x] Implement `--scan-clap-files`
-
-  - [x] Read bundle information of all clap plugins
-
-- [x] Implement plugin info
-
-  - [x] Read params
-  - [-] Read ports
-  - [ ] Scan other extensions
 
 ## License
 

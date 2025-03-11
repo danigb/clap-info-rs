@@ -64,13 +64,15 @@ impl ClapInfoHost {
             &host_info,
         )?;
 
-        let audio_config = PluginAudioConfiguration {
-            sample_rate: 48_000.0,
-            min_frames_count: 32,
-            max_frames_count: 4096,
-        };
         // We need to activate the processor to obtain some data (like latency)
-        let _audio_processor = plugin.activate(|sh, _| ClipInfoAudioProcessor { sh }, audio_config);
+        let _stopped_audio_processor = plugin.activate(
+            |sh, _| ClipInfoAudioProcessor { sh },
+            PluginAudioConfiguration {
+                sample_rate: 48_000.0,
+                min_frames_count: 32,
+                max_frames_count: 4096,
+            },
+        );
 
         let mut mt_handle = plugin.plugin_handle();
 

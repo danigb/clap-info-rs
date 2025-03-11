@@ -21,7 +21,8 @@ struct ClapInfoArgs {
     #[arg(long)]
     search_path: bool,
 
-    /// Choose which plugin to create (if the CLAP has more than one). If you set to -1 we will traverse all plugins.
+    // TODO: If you set to -1 we will traverse all plugins.
+    /// Choose which plugin to create (if the CLAP has more than one).
     #[arg(short, long, default_value = "0")]
     which: usize,
 }
